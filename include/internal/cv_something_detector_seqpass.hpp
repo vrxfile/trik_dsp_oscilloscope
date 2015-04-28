@@ -18,7 +18,6 @@
 
 #include "internal/stdcpp.hpp"
 #include "trik_vidtranscode_cv.h"
-#include "internal/cv_hsv_range_detector.hpp"
 
 
 /* **** **** **** **** **** */ namespace trik /* **** **** **** **** **** */ {
