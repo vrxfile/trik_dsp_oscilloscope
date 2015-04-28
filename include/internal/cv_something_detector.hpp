@@ -51,7 +51,7 @@ class SomethingDetector : public CVAlgorithm,
 
 } /* **** **** **** **** **** * namespace trik * **** **** **** **** **** */
 
-// include one of implementations
+// Include one of implementations
 //#include "internal/cv_ball_detector_reference.hpp"
 //#include "internal/cv_ball_detector_singlepass.hpp"
 //#include "internal/cv_ball_detector_seqpass.hpp"
