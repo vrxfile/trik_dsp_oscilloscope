@@ -10,7 +10,6 @@
 #include "internal/cv_something_detector.hpp"
 
 
-
 struct TrikCvPersistentData
 {
   std::auto_ptr<trik::cv::CVAlgorithm> m_cvAlgorithm;
