@@ -21,6 +21,8 @@
 #include "internal/cv_font_1.hpp"
 #include "trik_vidtranscode_cv.h"
 
+using namespace std;
+
 /* **** **** **** **** **** */namespace trik /* **** **** **** **** **** */
 {
 
@@ -108,6 +110,37 @@ private:
 			for (xi = x; xi < x + width; xi++)
 			{
 				_draw_point(xi, yi, _outImage, fgcolor);
+			}
+		}
+	}
+
+	// Draw line
+	void __attribute__((always_inline)) drawLine(int32_t x0,
+			int32_t y0, const int32_t x1, const int32_t y1,
+			const TrikCvImageBuffer& _outImage, const uint32_t fgcolor)
+	{
+		int32_t x = x1 - x0;
+		int32_t y = y1 - y0;
+		int32_t dx = abs(x), sx = x0 < x1 ? 1 : -1;
+		int32_t dy = -abs(y), sy = y0 < y1 ? 1 : -1;
+		int32_t err = dx + dy, e2;
+		for (;;)
+		{
+			_draw_point(x0, y0, _outImage, fgcolor);
+			e2 = 2 * err;
+			if (e2 >= dy)
+			{
+				if (x0 == x1)
+					break;
+				err += dy;
+				x0 += sx;
+			}
+			if (e2 <= dx)
+			{
+				if (y0 == y1)
+					break;
+				err += dx;
+				y0 += sy;
 			}
 		}
 	}
@@ -240,7 +273,12 @@ public:
 			TrikCvImageBuffer& _outImage, const TrikCvAlgInArgs& _inArgs,
 			TrikCvAlgOutArgs& _outArgs)
 	{
-		char s1[128];
+		const int8_t* restrict srcImageRow = _inImage.m_ptr;		// Pointer to inImage
+		char s1[128];												// Temp string
+		int32_t x1, y1, oldx1, oldy1;								// Parameters to draw osc
+		int32_t x2, y2, oldx2, oldy2;								// Parameters to draw osc
+		int32_t idata1, idata2, idata3, idata4;						// Data read from inImage
+		const nsamples = 512;										// Number of samples to read
 		if (m_inImageDesc.m_height * m_inImageDesc.m_lineLength
 				> _inImage.m_size)
 			return false;
@@ -251,8 +289,26 @@ public:
 				* m_outImageDesc.m_lineLength;
 
 		// Draw some things
-		sprintf(s1, "Privet,kakashka!");
-		drawString(s1, 0, 0, 2, _outImage, CL_YELLOW);
+		//sprintf(s1, "b0 = %d, b5 = %d", *(srcImageRow + 0), *(srcImageRow + 5));
+		sprintf(s1, "");
+		drawString(s1, 0, 0, 1, _outImage, CL_YELLOW);
+		x1 = x2 = y1 = y2 = oldx1 = oldx2 = oldy1 = oldy2 = 0;
+		for (int32_t i = 0; i < nsamples; i ++)
+		{
+			x1 = i * 319 / nsamples;
+			idata1 = *(srcImageRow + 0);
+			idata2 = *(srcImageRow + 1);
+			idata3 = *(srcImageRow + 2);
+			idata4 = *(srcImageRow + 3);
+			y1 = ((idata1 << 8) + idata2) * 120 / 65535 + 119 - 32;
+			y2 = ((idata3 << 8) + idata4) * 120 / 65535 + 119 + 32;
+			drawLine(oldx1, oldy1, x1, y1, _outImage, CL_YELLOW);
+			drawLine(oldx1, oldy2, x1, y2, _outImage, CL_WHITE);
+			oldx1 = x1;
+			oldy1 = y1;
+			oldy2 = y2;
+			srcImageRow+=4;
+		}
 
 		return true;
 	}
